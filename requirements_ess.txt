@@ -1,0 +1,4 @@
+requests
+yagmail
+python-dotenv
+twilio

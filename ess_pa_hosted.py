@@ -4,6 +4,8 @@ from datetime import datetime,timedelta
 import yagmail,dotenv
 from twilio.rest import Client
 
+
+
 def post_data(name,password):
     headers = {
         "Authorization": "Basic bXktdHJ1c3RlZC1jbGllbnQ6c2VjcmV0",
@@ -44,7 +46,9 @@ def get_details(access_token,name):
     get_response=get_data.json()
     timein_timestamp=datetime.utcfromtimestamp(get_response['empAttenanceDet']['timeIn']/1000)+timedelta(hours=5,minutes=30)
     print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
-    return 
+    time_out=timein_timestamp+timedelta(hours=9)
+    time_in=timein_timestamp.strftime('%H:%M:%S')
+    return time_in,time_out.strftime('%H:%M:%S')
 
 def get_particular_details(access,name):
     url="https://ess.changepond.com/ESS-Java/api/emplyee/empAttendanceReportDetailsSearch/"
@@ -149,7 +153,7 @@ def get_shortfall_report(access):
     print(final_data)
     return final_data,employee_name,from_date,to_date
     
-def send_email(to_email,data):
+def send_email(to_email,data,time_in,time_out):
     email='devanathan.pain@gmail.com'
     dotenv.load_dotenv()
     app_key=os.getenv("EMAIL_KEY")
@@ -161,12 +165,14 @@ def send_email(to_email,data):
 
                {data[0]}
 
+                Today you logged in at {time_in} and you should at {time_out}
+
                 Regards,
                 Deva '''
     yag.send(to=to_email,subject='Ess report',contents=format)
     print('mail sent successfully')
 
-def send_whatsapp_msg(data):
+def send_whatsapp_msg(data,time_in,time_out):
     dotenv.load_dotenv()
     account_sid = os.getenv('ACCOUNT_SID')
     auth_token = os.getenv('TWILLO_AUTH_TOKEN')
@@ -182,6 +188,9 @@ Today will be  good day for you ❤️
 Thank you 😊
 
 {data[0]}
+
+Today you logged in at {time_in} and you should at {time_out}
+
 '''
     phone_number=os.getenv('PHONE_NUMBER')
     message = client.messages.create(
@@ -203,10 +212,10 @@ if __name__=="__main__":
     password=os.getenv('ESS_PASSWORD')
     access=post_data(name=name,password=password)
     if access:
-        get_details(access,name)
+        time_in,time_out=get_details(access,name)
         all_data=get_shortfall_report(access)
         email='devanathan640@gmail.com'
-        send_email(email,all_data)
-        send_whatsapp_msg(all_data)
+        send_email(email,all_data,time_in,time_out)
+        send_whatsapp_msg(all_data,time_in,time_out)
     else:
         print("Data not found")

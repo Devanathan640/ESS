@@ -2,3 +2,4 @@ requests
 yagmail
 python-dotenv
 twilio
+keyring

@@ -48,6 +48,7 @@ def get_details(access_token,name):
     print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
     time_out=timein_timestamp+timedelta(hours=9)
     time_in=timein_timestamp.strftime('%H:%M:%S')
+    print(time_in,time_out)
     return time_in,time_out.strftime('%H:%M:%S')
 
 def get_particular_details(access,name):

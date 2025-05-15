@@ -3,3 +3,4 @@ yagmail
 python-dotenv
 twilio
 keyring
+keyrings.alt

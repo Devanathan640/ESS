@@ -169,7 +169,7 @@ def send_email(to_email,data,time_in,time_out):
 
                 {data[0]}
 
-                    Today you logged in at {time_in} and you should at {time_out}
+                    Today you logged in at {time_in} and you should logout at {time_out}
 
                     Regards,
                     Deva '''
@@ -201,7 +201,7 @@ def send_whatsapp_msg(data,time_in,time_out):
 
     {data[0]}
 
-    Today you logged in at {time_in} and you should at {time_out}
+    Today you logged in at {time_in} and you should logout at {time_out}
 
     '''
     else:

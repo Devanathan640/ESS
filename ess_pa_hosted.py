@@ -1,9 +1,11 @@
+import calendar
 import os,time
 import requests,json
 from datetime import datetime,timedelta
 import yagmail,dotenv
 from twilio.rest import Client
-import calendar
+
+
 
 def post_data(name,password):
     headers = {
@@ -43,9 +45,14 @@ def get_details(access_token,name):
             break
         time.sleep(2)
     get_response=get_data.json()
-    timein_timestamp=datetime.utcfromtimestamp(get_response['empAttenanceDet']['timeIn']/1000)+timedelta(hours=5,minutes=30)
-    print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
-    return 
+    if get_response['empAttenanceDet']['timeIn']:
+        timein_timestamp=datetime.utcfromtimestamp(get_response['empAttenanceDet']['timeIn']/1000)+timedelta(hours=5,minutes=30)
+        print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
+        time_out=timein_timestamp+timedelta(hours=9)
+        time_in=timein_timestamp.strftime('%H:%M:%S')
+        return time_in,time_out.strftime('%H:%M:%S')
+    else:
+        return None
 
 def get_particular_details(access,name):
     url="https://ess.changepond.com/ESS-Java/api/emplyee/empAttendanceReportDetailsSearch/"
@@ -108,16 +115,16 @@ def get_particular_details(access,name):
 def get_shortfall_report(access):
     try:
         today=datetime.now()
+        prev_month=(today-timedelta(weeks=4)).month
         _,total_days=calendar.monthrange(today.year,today.month)
-        if today.month==1:
+        if today.month==1 and today.day<=26:
             prev_year=today.year-1
         else:
             prev_year=today.year
-        if today>=datetime(today.year,today.month,26) and today<=datetime(today.year,today.month,total_days):
+        if today>datetime(today.year,today.month,26) and today<=datetime(today.year,today.month,total_days):
             start_date=datetime(prev_year,today.month,26).strftime('%Y-%m-%d')
         else:
-            start_date=datetime(prev_year,today.month-1,26).strftime('%Y-%m-%d')
-        print(start_date)
+            start_date=datetime(prev_year,prev_month,26).strftime('%Y-%m-%d')
         end_date=(today-timedelta(days=1)).strftime('%Y-%m-%d')
         from_date=start_date
         to_date=end_date
@@ -155,40 +162,57 @@ def get_shortfall_report(access):
     print(final_data)
     return final_data,employee_name,from_date,to_date
     
-def send_email(to_email,data):
+def send_email(to_email,data,time_in,time_out):
     email='devanathan.pain@gmail.com'
     dotenv.load_dotenv()
     app_key=os.getenv("EMAIL_KEY")
     yagmail.register(email,app_key)
     yag=yagmail.SMTP(email)
-    format=f'''Hi {data[1]},
-            
-               Below you can find your ess report from {data[2]} to {data[3]}
+    if data:
+        format=f'''Hi {data[1]},
+                
+                Below you can find your ess report from {data[2]} to {data[3]}
 
-               {data[0]}
+                {data[0]}
 
-                Regards,
-                Deva '''
+                    Today you logged in at {time_in} and you should logout at {time_out}
+
+                    Regards,
+                    Deva '''
+    else:
+        format='''
+            Today you didn\'t punched in
+
+            Thanks & regards,
+            Deva
+'''
     yag.send(to=to_email,subject='Ess report',contents=format)
     print('mail sent successfully')
 
-def send_whatsapp_msg(data):
+def send_whatsapp_msg(data,time_in,time_out):
     dotenv.load_dotenv()
     account_sid = os.getenv('ACCOUNT_SID')
     auth_token = os.getenv('TWILLO_AUTH_TOKEN')
 
     client = Client(account_sid, auth_token)
 
-    body=f'''Hi {data[1]}
+    if data:
+        body=f'''Hi {data[1]}
 
-You can find your ESS report below from {data[2]} 📆 to {data[3]} 📆
+    You can find your ESS report below from {data[2]} 📆 to {data[3]} 📆
 
-Today will be  good day for you ❤️
+    Today will be  good day for you ❤️
 
-Thank you 😊
+    Thank you 😊
 
-{data[0]}
-'''
+    {data[0]}
+
+    Today you logged in at {time_in} and you should logout at {time_out}
+
+    '''
+    else:
+        body='Today you didn\'t punched in' 
+
     phone_number=os.getenv('PHONE_NUMBER')
     message = client.messages.create(
         body=body,
@@ -208,11 +232,15 @@ if __name__=="__main__":
     name='4559'
     password=os.getenv('ESS_PASSWORD')
     access=post_data(name=name,password=password)
+    email='devanathan640@gmail.com'
     if access:
-        get_details(access,name)
-        all_data=get_shortfall_report(access)
-        email='devanathan640@gmail.com'
-        send_email(email,all_data)
-        send_whatsapp_msg(all_data)
+        if get_details(access,name):
+            time_in,time_out=get_details(access,name)
+            all_data=get_shortfall_report(access)
+            send_email(email,all_data,time_in,time_out)
+            send_whatsapp_msg(all_data,time_in,time_out)
+        else:
+            send_email(to_email=email,data=None,time_in=None,time_out=None)
+            send_whatsapp_msg(data=None,time_in=None,time_out=None)
     else:
         print("Data not found")

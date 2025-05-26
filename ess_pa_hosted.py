@@ -115,6 +115,7 @@ def get_particular_details(access,name):
 def get_shortfall_report(access):
     try:
         today = datetime.now()
+        today=datetime(today.year,today.month,today.day)
         prev_month=(today-timedelta(weeks=4)).month
         _,total_days=calendar.monthrange(today.year,today.month)
         if today.month==1 and today.day<=26:

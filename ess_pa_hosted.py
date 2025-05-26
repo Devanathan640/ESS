@@ -114,30 +114,20 @@ def get_particular_details(access,name):
 
 def get_shortfall_report(access):
     try:
-        tz = pytz.timezone('Asia/Kolkata')
-        today = datetime.now(tz)
-        
-        prev_month = (today - timedelta(weeks=4)).month
-        _, total_days = calendar.monthrange(today.year, today.month)
-        
-        if today.month == 1 and today.day <= 26:
-            prev_year = today.year - 1
+        today = datetime.now()
+        prev_month=(today-timedelta(weeks=4)).month
+        _,total_days=calendar.monthrange(today.year,today.month)
+        if today.month==1 and today.day<=26:
+            prev_year=today.year-1
         else:
-            prev_year = today.year
-        
-        # Properly create timezone-aware comparison dates
-        comparison_date_26 = datetime(today.year, today.month, 26, tzinfo=tz)
-        comparison_end_of_month = datetime(today.year, today.month, total_days, tzinfo=tz)
-        
-        if comparison_date_26 < today <= comparison_end_of_month:
-            start_date = datetime(prev_year, today.month, 26, tzinfo=tz).strftime('%Y-%m-%d')
+            prev_year=today.year
+        if today>datetime(today.year,today.month,26) and today<=datetime(today.year,today.month,total_days):
+            start_date=datetime(prev_year,today.month,26).strftime('%Y-%m-%d')
         else:
-            start_date = datetime(prev_year, prev_month, 26, tzinfo=tz).strftime('%Y-%m-%d')
-        
-        end_date = (today - timedelta(days=1)).strftime('%Y-%m-%d')
-        
-        from_date = start_date
-        to_date = end_date
+            start_date=datetime(prev_year,prev_month,26).strftime('%Y-%m-%d')
+        end_date=(today-timedelta(days=1)).strftime('%Y-%m-%d')
+        from_date=start_date
+        to_date=end_date
     except Exception as e:
         print(e)
         print('Please enter correct date format')

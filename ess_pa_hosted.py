@@ -116,6 +116,7 @@ def get_shortfall_report(access):
     try:
         tz = pytz.timezone('Asia/Kolkata')
         today = datetime.now(tz)
+        print(today)
         prev_month=(today-timedelta(weeks=4)).month
         _,total_days=calendar.monthrange(today.year,today.month)
         if today.month==1 and today.day<=26:

@@ -115,7 +115,7 @@ def get_particular_details(access,name):
 def get_shortfall_report(access):
     try:
         tz = pytz.timezone('Asia/Kolkata')
-        today = datetime.now(tz)
+        today = tz.localize(datetime.now().replace(tzinfo=None))
         print(today)
         prev_month=(today-timedelta(weeks=4)).month
         _,total_days=calendar.monthrange(today.year,today.month)

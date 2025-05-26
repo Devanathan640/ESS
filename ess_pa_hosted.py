@@ -4,7 +4,7 @@ import requests,json
 from datetime import datetime,timedelta
 import yagmail,dotenv
 from twilio.rest import Client
-
+import pytz
 
 
 def post_data(name,password):
@@ -114,7 +114,8 @@ def get_particular_details(access,name):
 
 def get_shortfall_report(access):
     try:
-        today=datetime.now()
+        tz = pytz.timezone('Asia/Kolkata')
+        today = datetime.now(tz)
         prev_month=(today-timedelta(weeks=4)).month
         _,total_days=calendar.monthrange(today.year,today.month)
         if today.month==1 and today.day<=26:

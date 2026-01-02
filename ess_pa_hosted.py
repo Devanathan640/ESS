@@ -23,10 +23,12 @@ def post_data(name,password):
         for i in range(5):
             res=cloudscraper.requests.post(url,headers=headers,data=data)
             response=res.json()
+            print(f"Attempt {i+1}")
             access_token=response.get('access_token')
             if res.status_code==200:
                 return access_token
             time.sleep(2)
+        raise Exception("Attempt full unable to fetch data...")
     except Exception as e:
         print(e)
         print("Data not found")
@@ -47,7 +49,7 @@ def get_details(access_token,name):
     get_response=get_data.json()
     if get_response['empAttenanceDet']['timeIn']:
         timein_timestamp=datetime.utcfromtimestamp(get_response['empAttenanceDet']['timeIn']/1000)+timedelta(hours=5,minutes=30)
-        print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
+        # print(f"\ntime in: {timein_timestamp if timein_timestamp else 'Not punched in'}\ntime out: {get_response['empAttenanceDet']['timeOut'] if get_response['empAttenanceDet']['timeOut'] else 'Still not punched out'}")
         time_out=timein_timestamp+timedelta(hours=9)
         time_in=timein_timestamp.strftime('%H:%M:%S')
         return time_in,time_out.strftime('%H:%M:%S')

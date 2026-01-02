@@ -5,7 +5,6 @@ from datetime import datetime,timedelta
 import yagmail,dotenv
 from twilio.rest import Client
 import pytz
-import cloudscraper
 
 def post_data(name,password):
     headers = {

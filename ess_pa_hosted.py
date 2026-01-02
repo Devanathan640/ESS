@@ -5,7 +5,7 @@ from datetime import datetime,timedelta
 import yagmail,dotenv
 from twilio.rest import Client
 import pytz
-
+import cloudscraper
 
 def post_data(name,password):
     headers = {
@@ -21,7 +21,7 @@ def post_data(name,password):
     url="https://ess.changepond.com/ESS-Java/oauth/token"
     try:
         for i in range(5):
-            res=requests.post(url,headers=headers,data=data)
+            res=cloudscraper.requests.post(url,headers=headers,data=data)
             response=res.json()
             access_token=response.get('access_token')
             if res.status_code==200:
@@ -233,6 +233,7 @@ if __name__=="__main__":
     name='4559'
     password=os.getenv('ESS_PASSWORD')
     access=post_data(name=name,password=password)
+
     email='devanathan640@gmail.com'
     if access:
         if get_details(access,name):

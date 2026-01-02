@@ -21,7 +21,7 @@ def post_data(name,password):
     url="https://ess.changepond.com/ESS-Java/oauth/token"
     try:
         for i in range(5):
-            res=cloudscraper.requests.post(url,headers=headers,data=data)
+            res=requests.post(url,headers=headers,data=data)
             response=res.json()
             print(f"Attempt {i+1}")
             access_token=response.get('access_token')
